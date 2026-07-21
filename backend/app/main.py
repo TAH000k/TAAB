@@ -5,6 +5,8 @@ import app.models
 
 from app.routers import users
 
+from app.routers import users_router
+
 app = FastAPI(
     title="TAAB API",
     version="0.1.0"
