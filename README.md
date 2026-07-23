@@ -1,84 +1,65 @@
-<div align="center">
-
 # TAAB
 
-**An open-source platform for managing shared items and borrowing.**
-
-</div>
+An open-source platform for managing shared items and borrowing.
 
 ---
 
 ## Overview
 
-TAAB is a modern borrowing management platform that helps families, teams, schools, and organizations track shared items.
+TAAB is designed to help families, friends, schools, and organizations manage shared items and keep track of borrowing activities.
 
-Instead of focusing only on books, TAAB is designed to manage any borrowable item, including books, tools, electronics, board games, cameras, sports equipment, and more.
-
-The goal is to provide a simple, secure, and scalable system for recording ownership, borrowing history, and item availability.
-
----
-
-## Core Concepts
-
-- Workspace-based architecture
-- User authentication with JWT
-- Role-based access control
-- Borrowing workflow
-- Item history
-- Invitation system
+The platform provides a secure and scalable backend for organizing items, managing members, and recording borrowing history.
 
 ---
 
 ## Features
 
-### Implemented
+### Current
 
-- JWT Authentication
-- Password hashing (bcrypt)
-- OAuth2 integration
-- SQLAlchemy ORM
-- FastAPI REST API
+- User authentication
+- JWT access tokens
+- OAuth2 authentication flow
+- Password hashing with bcrypt
+- RESTful API built with FastAPI
 
 ### Planned
 
 - Workspace management
 - Member invitations
 - Item management
-- Borrow & return workflow
+- Borrowing and returning
 - Borrow history
+- Search
+- Notifications
 - QR code support
 - Statistics dashboard
-- Notifications
-- Multi-language support
 
 ---
 
-## Technology Stack
+## Tech Stack
 
-| Component | Technology |
-|----------|------------|
-| Backend | FastAPI |
-| ORM | SQLAlchemy 2 |
-| Database | SQLite (PostgreSQL planned) |
-| Authentication | JWT + OAuth2 |
-| Password Hashing | bcrypt |
-| Validation | Pydantic |
-| Server | Uvicorn |
+- Python 3
+- FastAPI
+- SQLAlchemy
+- SQLite
+- Pydantic
+- JWT
+- Passlib
+- Uvicorn
 
 ---
 
 ## Roadmap
 
-- [x] Project initialization
+- [x] Backend setup
 - [x] Database configuration
-- [x] User authentication
-- [ ] Workspace model
+- [x] Authentication
+- [ ] Workspace system
 - [ ] Membership system
-- [ ] Item model
+- [ ] Item management
 - [ ] Borrowing system
-- [ ] Search
-- [ ] Statistics
 - [ ] Notifications
+- [ ] Statistics
 - [ ] Docker support
 
 ---
@@ -87,17 +68,14 @@ The goal is to provide a simple, secure, and scalable system for recording owner
 
 ```text
 backend/
-│
 ├── app/
-│   ├── auth.py
-│   ├── database.py
-│   ├── security.py
 │   ├── crud/
 │   ├── models/
 │   ├── routers/
 │   ├── schemas/
+│   ├── database.py
+│   ├── security.py
 │   └── main.py
-│
 ├── requirements.txt
 └── README.md
 ```
@@ -120,13 +98,13 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-The API will be available at:
+API:
 
 ```
 http://127.0.0.1:8000
 ```
 
-Interactive documentation:
+Documentation:
 
 ```
 http://127.0.0.1:8000/docs
@@ -134,22 +112,12 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## Project Status
-
-TAAB is currently under active development.
-
-The authentication system has been completed and development is now focused on the core borrowing architecture.
-
----
-
 ## Contributing
 
-Contributions are welcome.
-
-If you would like to improve TAAB, feel free to open an issue or submit a pull request.
+Contributions are welcome. Feel free to open an issue or submit a pull request.
 
 ---
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License
