@@ -7,6 +7,8 @@ from app.database import Base
 from enum import Enum
 from sqlalchemy import Enum as SQLEnum
 
+from sqlalchemy.orm import relationship
+
 
 class UserRole(str, Enum):
     USER = "user"
@@ -58,5 +60,10 @@ class User(Base):
     created_at = Column(
         DateTime,
         default=lambda: datetime.now(timezone.utc)
+    )
+    
+    items = relationship(
+        "Item",
+        back_populates="owner"
     )
     
