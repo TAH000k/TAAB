@@ -1,21 +1,21 @@
 from pydantic import BaseModel, Field
 
+from app.models.user import UserRole
+
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=32)
     display_name: str = Field(min_length=1, max_length=50)
     password: str = Field(min_length=6)
-    birth_year: int
-    role: str
 
 
 class UserResponse(BaseModel):
     id: int
     username: str
     display_name: str
-    birth_year: int
-    role: str
+    profile_picture: str | None = None
+    bio: str | None = None
+    role: UserRole
 
-    model_config = {
-        "from_attributes": True
-    }
+    class Config:
+        from_attributes = True

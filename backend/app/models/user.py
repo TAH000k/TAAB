@@ -1,20 +1,62 @@
-from sqlalchemy import String, Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime, timezone
+
+from sqlalchemy import Column, Integer, String, DateTime
 
 from app.database import Base
 
+from enum import Enum
+from sqlalchemy import Enum as SQLEnum
 
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
+    
+    
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    username: Mapped[str] = mapped_column(String(32), unique=True)
+    username = Column(
+        String(32),
+        unique=True,
+        nullable=False,
+        index=True
+    )
 
-    display_name: Mapped[str] = mapped_column(String(50))
+    display_name = Column(
+        String(64),
+        nullable=False
+    )
 
-    password_hash: Mapped[str] = mapped_column(String(255))
+    password_hash = Column(
+        String,
+        nullable=False
+    )
 
-    birth_year: Mapped[int] = mapped_column(Integer)
+    profile_picture = Column(
+        String,
+        nullable=True
+    )
 
-    role: Mapped[str] = mapped_column(String(20))
+    bio = Column(
+        String(300),
+        nullable=True
+    )
+
+    role = Column(
+        SQLEnum(UserRole),
+        nullable=False,
+        default=UserRole.USER
+    )
+
+    created_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc)
+    )
+    
