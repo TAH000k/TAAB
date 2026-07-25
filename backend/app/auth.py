@@ -20,7 +20,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/auth/login"
+    tokenUrl="auth/login"
 )
 
 def create_access_token(data: dict) -> str:
@@ -49,7 +49,8 @@ def decode_access_token(token: str) -> dict:
 
         return payload
 
-    except JWTError:
+    except JWTError as e:
+        print(e)
         return None
     
 
@@ -72,6 +73,8 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
         )
+        
+    user_id = int(user_id)
 
     user = get_user_by_id(db, user_id)
 
@@ -80,5 +83,5 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
-
+    
     return user

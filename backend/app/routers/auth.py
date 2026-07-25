@@ -32,7 +32,7 @@ def login(from_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     access_token = create_access_token(
         {
-            "sub": user.id,
+            "sub": str(user.id),
         }
     )
 
