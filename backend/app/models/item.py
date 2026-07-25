@@ -46,7 +46,13 @@ class Item(Base):
         default=lambda: datetime.now(timezone.utc)
     )
 
+
     owner = relationship(
         "User",
         back_populates="items"
+    )
+    
+    borrows = relationship(
+        "Borrow",
+        back_populates="item"
     )

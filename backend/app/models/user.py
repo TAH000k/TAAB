@@ -62,8 +62,21 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc)
     )
     
+    
     items = relationship(
         "Item",
         back_populates="owner"
+    )
+    
+    lent_items = relationship(
+        "Borrow",
+        foreign_keys="Borrow.owner_id",
+        back_populates="owner"
+    )
+
+    borrowed_items = relationship(
+        "Borrow",
+        foreign_keys="Borrow.borrower_id",
+        back_populates="borrower"
     )
     
