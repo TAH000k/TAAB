@@ -54,12 +54,12 @@ The platform provides a secure and scalable backend for organizing items, managi
 - [x] Backend setup
 - [x] Database configuration
 - [x] Authentication
-- [ ] Workspace system
-- [ ] Membership system
-- [ ] Item management
+- [x] Item management
 - [ ] Borrowing system
 - [ ] Notifications
 - [ ] Statistics
+- [ ] Workspace system
+- [ ] Membership system
 - [ ] Docker support
 
 ---
