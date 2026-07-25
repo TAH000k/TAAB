@@ -64,24 +64,6 @@ The platform provides a secure and scalable backend for organizing items, managi
 
 ---
 
-## Project Structure
-
-```text
-backend/
-├── app/
-│   ├── crud/
-│   ├── models/
-│   ├── routers/
-│   ├── schemas/
-│   ├── database.py
-│   ├── security.py
-│   └── main.py
-├── requirements.txt
-└── README.md
-```
-
----
-
 ## Getting Started
 
 ```bash
