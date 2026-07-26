@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.models.borrow import Borrow, BorrowStatus
 from app.models.item import Item
 
+from datetime import datetime, timezone
+
 
 def create_borrow_request(
     db: Session,
@@ -56,3 +58,40 @@ def get_received_requests(
         .order_by(Borrow.requested_at.desc())
         .all()
     )
+
+
+def get_borrow_by_id(
+    db: Session,
+    borrow_id: int,
+):
+    return (
+        db.query(Borrow)
+        .filter(Borrow.id == borrow_id)
+        .first()
+    )
+
+
+def accept_request(
+    db: Session,
+    borrow: Borrow,
+):
+    borrow.status = BorrowStatus.ACCEPTED
+    borrow.responded_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(borrow)
+
+    return borrow
+
+
+def reject_request(
+    db: Session,
+    borrow: Borrow,
+):
+    borrow.status = BorrowStatus.REJECTED
+    borrow.responded_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(borrow)
+
+    return borrow

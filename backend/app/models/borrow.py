@@ -62,6 +62,11 @@ class Borrow(Base):
         DateTime,
         default=lambda: datetime.now(timezone.utc)
     )
+    
+    responded_at = Column(
+        DateTime,
+        nullable=True,
+    )
 
     due_date = Column(
         DateTime,
