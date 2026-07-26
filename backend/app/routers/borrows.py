@@ -38,3 +38,31 @@ def create_borrow_request(
         )
 
     return result
+
+
+@router.get(
+    "/sent",
+    response_model=list[BorrowResponse],
+)
+def get_sent_requests(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return borrow_crud.get_sent_requests(
+        db=db,
+        borrower_id=current_user.id,
+    )
+    
+
+@router.get(
+    "/received",
+    response_model=list[BorrowResponse],
+)
+def get_received_requests(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return borrow_crud.get_received_requests(
+        db=db,
+        owner_id=current_user.id,
+    )

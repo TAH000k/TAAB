@@ -32,3 +32,27 @@ def create_borrow_request(
     db.refresh(borrow)
 
     return borrow
+
+
+def get_sent_requests(
+    db: Session,
+    borrower_id: int,
+):
+    return (
+        db.query(Borrow)
+        .filter(Borrow.borrower_id == borrower_id)
+        .order_by(Borrow.requested_at.desc())
+        .all()
+    )
+
+
+def get_received_requests(
+    db: Session,
+    owner_id: int,
+):
+    return (
+        db.query(Borrow)
+        .filter(Borrow.owner_id == owner_id)
+        .order_by(Borrow.requested_at.desc())
+        .all()
+    )
