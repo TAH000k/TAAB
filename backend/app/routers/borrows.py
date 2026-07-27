@@ -102,10 +102,18 @@ def accept_request(
             detail="Borrow request is no longer pending",
         )
 
-    return borrow_crud.accept_request(
+    result = borrow_crud.accept_request(
         db=db,
         borrow=borrow,
     )
+
+    if result is None:
+        raise HTTPException(
+            status_code=409,
+            detail="Item is currently unavailable",
+        )
+
+    return result
     
 
 @router.post(

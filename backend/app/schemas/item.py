@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ItemCreate(BaseModel):
@@ -9,10 +9,13 @@ class ItemCreate(BaseModel):
 
 class ItemResponse(BaseModel):
     id: int
+    owner_id: int
     name: str
     description: str | None
     category: str | None
-    owner_id: int
+    image: str | None
 
-    class Config:
-        from_attributes = True
+    available: bool
+    current_borrow_id: int | None
+
+    model_config = ConfigDict(from_attributes=True)

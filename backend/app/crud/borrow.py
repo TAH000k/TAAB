@@ -75,8 +75,42 @@ def accept_request(
     db: Session,
     borrow: Borrow,
 ):
+    active_borrow = (
+        db.query(Borrow)
+        .filter(
+            Borrow.item_id == borrow.item_id,
+            Borrow.id != borrow.id,
+            Borrow.status.in_(
+                [
+                    BorrowStatus.ACCEPTED,
+                    BorrowStatus.BORROWED,
+                ]
+            ),
+        )
+        .first()
+    )
+
+    if active_borrow is not None:
+        return None
+
     borrow.status = BorrowStatus.ACCEPTED
     borrow.responded_at = datetime.now(timezone.utc)
+
+    (
+        db.query(Borrow)
+        .filter(
+            Borrow.item_id == borrow.item_id,
+            Borrow.id != borrow.id,
+            Borrow.status == BorrowStatus.PENDING,
+        )
+        .update(
+            {
+                Borrow.status: BorrowStatus.REJECTED,
+                Borrow.responded_at: datetime.now(timezone.utc),
+            },
+            synchronize_session=False,
+        )
+    )
 
     db.commit()
     db.refresh(borrow)

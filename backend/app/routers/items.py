@@ -2,89 +2,120 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.item import ItemCreate, ItemResponse
-from app.crud import item as item_crud
-from app.models.user import User
+
 from app.auth import get_current_user
+
+from app.models.user import User
+
+from app.schemas.item import ItemCreate, ItemResponse
+
+from app.crud import item as item_crud
+
+from app.services.item import serialize_item, serialize_items
 
 
 router = APIRouter(
     prefix="/items",
-    tags=["Items"]
+    tags=["Items"],
 )
 
 
-@router.post("/", response_model=ItemResponse)
+@router.post(
+    "/",
+    response_model=ItemResponse,
+)
 def create_item(
-    item: ItemCreate,
+    item_data: ItemCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    return item_crud.create_item(
+    item = item_crud.create_item(
+        db=db,
+        item_data=item_data,
+        owner_id=current_user.id,
+    )
+
+    return serialize_item(
         db,
         item,
-        current_user.id
     )
 
 
-@router.get("/me", response_model=list[ItemResponse])
-def get_my_items(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    return item_crud.get_user_items(
-        db,
-        current_user.id
-    )
-
-
-@router.get("/{item_id}", response_model=ItemResponse)
+@router.get(
+    "/{item_id}",
+    response_model=ItemResponse,
+)
 def get_item(
     item_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     item = item_crud.get_item(
-        db,
-        item_id
+        db=db,
+        item_id=item_id,
     )
 
-    if not item:
+    if item is None:
         raise HTTPException(
             status_code=404,
-            detail="Item not found"
+            detail="Item not found",
         )
 
-    return item
+    return serialize_item(
+        db,
+        item,
+    )
 
 
-@router.delete("/{item_id}")
+@router.get(
+    "/",
+    response_model=list[ItemResponse],
+)
+def get_my_items(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    items = item_crud.get_user_items(
+        db=db,
+        owner_id=current_user.id,
+    )
+
+    return serialize_items(
+        db,
+        items,
+    )
+
+'''
+@router.delete(
+    "/{item_id}",
+)
 def delete_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     item = item_crud.get_item(
-        db,
-        item_id
+        db=db,
+        item_id=item_id,
     )
 
-    if not item:
+    if item is None:
         raise HTTPException(
             status_code=404,
-            detail="Item not found"
+            detail="Item not found",
         )
 
     if item.owner_id != current_user.id:
         raise HTTPException(
             status_code=403,
-            detail="Not your item"
+            detail="You do not own this item",
         )
 
     item_crud.delete_item(
-        db,
-        item
+        db=db,
+        item=item,
     )
 
     return {
-        "message": "Item deleted"
+        "message": "Item deleted successfully",
     }
+'''
