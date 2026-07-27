@@ -6,33 +6,74 @@ An open-source platform for managing shared items and borrowing.
 
 ## Overview
 
-TAAB is designed to help families, friends, schools, and organizations manage shared items and keep track of borrowing activities.
+TAAB is an open-source borrowing platform that helps families, friends, schools, clubs, and organizations manage shared items and track borrowing activities.
 
-The platform provides a secure and scalable backend for organizing items, managing members, and recording borrowing history.
+The project focuses on simplicity, transparency, and scalability while providing a clean REST API built with FastAPI.
 
 ---
 
 ## Features
 
-### Current
+### Implemented
 
-- User authentication
-- JWT access tokens
-- OAuth2 authentication flow
+### Authentication
+- User registration
+- User login
+- JWT authentication
+- OAuth2 password flow
 - Password hashing with bcrypt
-- RESTful API built with FastAPI
+- Current user endpoint
 
-### Planned
+### Item Management
+- Create items
+- View owned items
+- Item categories
+- Availability status
+- Current borrow status
 
-- Workspace management
-- Member invitations
-- Item management
-- Borrowing and returning
+### Borrowing
+- Create borrow requests
+- View sent requests
+- View received requests
+- Accept borrow requests
+- Reject borrow requests
+- Automatic rejection of competing pending requests
+- Borrow ownership validation
+
+---
+
+## Planned
+
+### Borrow Lifecycle
+- Mark item as borrowed
+- Return request workflow
+- Return confirmation
 - Borrow history
-- Search
-- Notifications
+
+### Item Management
+- Soft delete
+- Image upload
+- Item search
+- Item filtering
+
+### Workspace
+- Multiple workspaces
+- Member invitations
+- Roles & permissions
+
+### Notifications
+- Borrow request notifications
+- Return reminders
+
+### Dashboard
+- Statistics
+- Borrow analytics
+
+### Extras
 - QR code support
-- Statistics dashboard
+- Docker deployment
+- PostgreSQL support
+- CI/CD
 
 ---
 
@@ -43,24 +84,47 @@ The platform provides a secure and scalable backend for organizing items, managi
 - SQLAlchemy
 - SQLite
 - Pydantic
+- Alembic
 - JWT
-- Passlib
+- Passlib (bcrypt)
 - Uvicorn
 
 ---
 
-## Roadmap
+## Project Status
 
-- [x] Backend setup
-- [x] Database configuration
-- [x] Authentication
-- [x] Item management
-- [ ] Borrowing system
-- [ ] Notifications
-- [ ] Statistics
-- [ ] Workspace system
-- [ ] Membership system
-- [ ] Docker support
+Current version:
+
+**Backend MVP in progress**
+
+Implemented:
+
+- Authentication
+- Item management
+- Borrow request workflow
+
+Currently working on:
+
+- Borrow lifecycle
+- Soft delete
+- Validation
+- Frontend
+
+---
+
+## API
+
+Swagger UI
+
+```
+http://127.0.0.1:8000/docs
+```
+
+OpenAPI
+
+```
+http://127.0.0.1:8000/openapi.json
+```
 
 ---
 
@@ -77,26 +141,46 @@ venv\Scripts\activate
 
 pip install -r requirements.txt
 
+alembic upgrade head
+
 uvicorn app.main:app --reload
 ```
 
-API:
+---
 
-```
-http://127.0.0.1:8000
-```
+## Roadmap
 
-Documentation:
-
-```
-http://127.0.0.1:8000/docs
-```
+- [x] Backend setup
+- [x] Database configuration
+- [x] Authentication
+- [x] User management
+- [x] Item management
+- [x] Borrow request workflow
+- [ ] Borrow lifecycle
+- [ ] Soft delete
+- [ ] Validation
+- [ ] Image upload
+- [ ] Search
+- [ ] Notifications
+- [ ] Workspace system
+- [ ] Roles & permissions
+- [ ] Statistics dashboard
+- [ ] Frontend
+- [ ] Docker
+- [ ] PostgreSQL
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Feel free to open an issue or submit a pull request.
+Contributions, issues, and feature requests are welcome.
+
+If you'd like to contribute:
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes.
+4. Open a Pull Request.
 
 ---
 
