@@ -1,58 +1,59 @@
-from sqlalchemy.orm import Session
+import enum
+from datetime import datetime, timezone
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum, Index
+from sqlalchemy.orm import relationship
 
-from app.models.item import Item
-from app.models.borrow import Borrow, BorrowStatus
-
-from app.schemas.item import ItemResponse
+from app.database import Base
 
 
-def serialize_item(
-    db: Session,
-    item: Item,
-) -> ItemResponse:
+class BorrowStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    HANDOVER_PENDING = "HANDOVER_PENDING"
+    BORROWED = "BORROWED"
+    RETURN_PENDING = "RETURN_PENDING"
+    RETURNED = "RETURNED"
+    REJECTED = "REJECTED"
+    CANCELED = "CANCELED"
+    DISPUTED = "DISPUTED"
 
-    active_borrow = (
-        db.query(Borrow)
-        .filter(
-            Borrow.item_id == item.id,
-            Borrow.status.in_(
-                [
-                    BorrowStatus.ACCEPTED,
-                    BorrowStatus.BORROWED,
-                ]
-            ),
-        )
-        .first()
-    )
 
-    return ItemResponse(
-        id=item.id,
-        owner_id=item.owner_id,
+class Borrow(Base):
+    __tablename__ = "borrows"
 
-        name=item.name,
-        description=item.description,
-        category=item.category,
-        image=item.image,
+    id = Column(Integer, primary_key=True, index=True)
+    item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    borrower_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-        available=active_borrow is None,
+    status = Column(Enum(BorrowStatus), default=BorrowStatus.PENDING, nullable=False)
 
-        current_borrow_id=(
-            active_borrow.id
-            if active_borrow
-            else None
+    requested_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    responded_at = Column(DateTime, nullable=True)
+    due_date = Column(DateTime, nullable=True)
+
+    borrowed_at = Column(DateTime, nullable=True)
+    returned_at = Column(DateTime, nullable=True)
+
+    lender_handover_confirmed_at = Column(DateTime, nullable=True)
+    borrower_handover_confirmed_at = Column(DateTime, nullable=True)
+    borrower_return_confirmed_at = Column(DateTime, nullable=True)
+    lender_return_confirmed_at = Column(DateTime, nullable=True)
+
+    item = relationship("Item", back_populates="borrows")
+    owner = relationship("User", foreign_keys=[owner_id])
+    borrower = relationship("User", foreign_keys=[borrower_id])
+
+    __table_args__ = (
+        Index(
+            "idx_unique_active_borrow",
+            "item_id",
+            unique=True,
+            sqlite_where=status.notin_([
+                BorrowStatus.PENDING.value,
+                BorrowStatus.RETURNED.value,
+                BorrowStatus.REJECTED.value,
+                BorrowStatus.CANCELED.value
+            ])
         ),
     )
-
-
-def serialize_items(
-    db: Session,
-    items: list[Item],
-) -> list[ItemResponse]:
-
-    return [
-        serialize_item(
-            db,
-            item,
-        )
-        for item in items
-    ]
