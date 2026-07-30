@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app.models.borrow import BorrowStatus
 
 
@@ -32,5 +32,4 @@ class BorrowResponse(BaseModel):
     borrower_return_confirmed_at: datetime | None = None
     lender_return_confirmed_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
