@@ -83,39 +83,3 @@ def get_my_items(
         db,
         items,
     )
-
-'''
-@router.delete(
-    "/{item_id}",
-)
-def delete_item(
-    item_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    item = item_crud.get_item(
-        db=db,
-        item_id=item_id,
-    )
-
-    if item is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Item not found",
-        )
-
-    if item.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=403,
-            detail="You do not own this item",
-        )
-
-    item_crud.delete_item(
-        db=db,
-        item=item,
-    )
-
-    return {
-        "message": "Item deleted successfully",
-    }
-'''

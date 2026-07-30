@@ -30,8 +30,9 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Item categories
 - Availability status
 - Current borrow status
+- Optimized query serialization (N+1 query prevention)
 
-### Borrowing
+### Borrowing (TAAB Workflow)
 - Create borrow requests
 - View sent requests
 - View received requests
@@ -39,16 +40,19 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Reject borrow requests
 - Automatic rejection of competing pending requests
 - Borrow ownership validation
+- Two-way handover confirmation
+- Two-way return confirmation
+- Cancel pending/accepted requests
+- Dispute management and resolution
+- Strict active request constraints (Database & Logic level)
+
+### Testing
+- Comprehensive automated testing using pytest
+- Complete lifecycle and edge-case coverage
 
 ---
 
-## Planned
-
-### Borrow Lifecycle
-- Mark item as borrowed
-- Return request workflow
-- Return confirmation
-- Borrow history
+### Planned
 
 ### Item Management
 - Soft delete
@@ -68,12 +72,13 @@ The project focuses on simplicity, transparency, and scalability while providing
 ### Dashboard
 - Statistics
 - Borrow analytics
+- Borrow history
 
 ### Extras
 - QR code support
 - Docker deployment
 - PostgreSQL support
-- CI/CD
+- CI/CD integration
 
 ---
 
@@ -88,6 +93,7 @@ The project focuses on simplicity, transparency, and scalability while providing
 - JWT
 - Passlib (bcrypt)
 - Uvicorn
+- Pytest
 
 ---
 
@@ -102,12 +108,13 @@ Implemented:
 - Authentication
 - Item management
 - Borrow request workflow
+- Full borrow lifecycle (Two-way confirmation & Disputes)
+- Automated testing
 
 Currently working on:
 
-- Borrow lifecycle
 - Soft delete
-- Validation
+- Image upload
 - Frontend
 
 ---
@@ -117,13 +124,13 @@ Currently working on:
 Swagger UI
 
 ```
-http://127.0.0.1:8000/docs
+[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 ```
 
 OpenAPI
 
 ```
-http://127.0.0.1:8000/openapi.json
+[http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
 ```
 
 ---
@@ -131,19 +138,27 @@ http://127.0.0.1:8000/openapi.json
 ## Getting Started
 
 ```bash
-git clone https://github.com/TAH000k/TAAB.git
+git clone [https://github.com/TAH000k/TAAB.git](https://github.com/TAH000k/TAAB.git)
 
 cd backend
 
 python -m venv venv
 
+# On Windows:
 venv\Scripts\activate
+# On macOS/Linux:
+# source venv/bin/activate
 
 pip install -r requirements.txt
+pip install pytest httpx
 
 alembic upgrade head
 
+# Run the server
 uvicorn app.main:app --reload
+
+# Run the automated tests
+python -m pytest -v
 ```
 
 ---
@@ -156,9 +171,10 @@ uvicorn app.main:app --reload
 - [x] User management
 - [x] Item management
 - [x] Borrow request workflow
-- [ ] Borrow lifecycle
+- [x] Borrow lifecycle (Handover, Return, Dispute)
+- [x] Automated Testing
+- [x] Validation
 - [ ] Soft delete
-- [ ] Validation
 - [ ] Image upload
 - [ ] Search
 - [ ] Notifications
