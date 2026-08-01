@@ -31,6 +31,7 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Availability status
 - Current borrow status
 - Optimized query serialization (N+1 query prevention)
+- Soft delete
 
 ### Borrowing (TAAB Workflow)
 - Create borrow requests
@@ -55,7 +56,6 @@ The project focuses on simplicity, transparency, and scalability while providing
 ### Planned
 
 ### Item Management
-- Soft delete
 - Image upload
 - Item search
 - Item filtering
@@ -150,7 +150,6 @@ venv\Scripts\activate
 # source venv/bin/activate
 
 pip install -r requirements.txt
-pip install pytest httpx
 
 alembic upgrade head
 
@@ -174,7 +173,7 @@ python -m pytest -v
 - [x] Borrow lifecycle (Handover, Return, Dispute)
 - [x] Automated Testing
 - [x] Validation
-- [ ] Soft delete
+- [x] Soft delete
 - [ ] Image upload
 - [ ] Search
 - [ ] Notifications
