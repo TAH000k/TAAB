@@ -60,11 +60,6 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Item search
 - Item filtering
 
-### Workspace
-- Multiple workspaces
-- Member invitations
-- Roles & permissions
-
 ### Notifications
 - Borrow request notifications
 - Return reminders
@@ -102,20 +97,6 @@ The project focuses on simplicity, transparency, and scalability while providing
 Current version:
 
 **Backend MVP in progress**
-
-Implemented:
-
-- Authentication
-- Item management
-- Borrow request workflow
-- Full borrow lifecycle (Two-way confirmation & Disputes)
-- Automated testing
-
-Currently working on:
-
-- Soft delete
-- Image upload
-- Frontend
 
 ---
 
