@@ -29,7 +29,7 @@ def get_item(
 ):
     return (
         db.query(Item)
-        .filter(Item.id == item_id)
+        .filter(Item.id == item_id, Item.is_deleted == False)
         .first()
     )
 
@@ -40,7 +40,7 @@ def get_user_items(
 ):
     return (
         db.query(Item)
-        .filter(Item.owner_id == owner_id)
+        .filter(Item.owner_id == owner_id, Item.is_deleted == False)
         .all()
     )
 
@@ -49,5 +49,7 @@ def delete_item(
     db: Session,
     item: Item
 ):
-    db.delete(item)
+    item.is_deleted = True
     db.commit()
+    db.refresh(item)
+    return item

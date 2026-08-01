@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -44,6 +44,12 @@ class Item(Base):
     created_at = Column(
         DateTime,
         default=lambda: datetime.now(timezone.utc)
+    )
+    
+    is_deleted = Column(
+        Boolean, 
+        default=False, 
+        nullable=False
     )
 
 

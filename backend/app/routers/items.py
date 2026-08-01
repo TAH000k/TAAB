@@ -1,16 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-
 from app.auth import get_current_user
-
 from app.models.user import User
-
 from app.schemas.item import ItemCreate, ItemResponse
-
 from app.crud import item as item_crud
-
 from app.services.item import serialize_item, serialize_items
 
 
@@ -83,3 +78,27 @@ def get_my_items(
         db,
         items,
     )
+
+
+@router.delete("/{item_id}")
+def delete_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    db_item = item_crud.get_item(db, item_id=item_id)
+    if not db_item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found"
+        )
+
+    if db_item.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to delete this item"
+        )
+
+    item_crud.delete_item(db, item=db_item)
+
+    return {"message": "Item deleted successfully"}
