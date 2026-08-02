@@ -159,7 +159,6 @@ python -m pytest -v
 - [x] Image upload
 - [ ] Search
 - [ ] Notifications
-- [ ] Workspace system
 - [ ] Roles & permissions
 - [ ] Statistics dashboard
 - [ ] Frontend
