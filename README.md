@@ -32,6 +32,7 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Current borrow status
 - Optimized query serialization (N+1 query prevention)
 - Soft delete
+- Image upload
 
 ### Borrowing (TAAB Workflow)
 - Create borrow requests
@@ -56,7 +57,6 @@ The project focuses on simplicity, transparency, and scalability while providing
 ### Planned
 
 ### Item Management
-- Image upload
 - Item search
 - Item filtering
 
@@ -156,7 +156,7 @@ python -m pytest -v
 - [x] Automated Testing
 - [x] Validation
 - [x] Soft delete
-- [ ] Image upload
+- [x] Image upload
 - [ ] Search
 - [ ] Notifications
 - [ ] Workspace system
