@@ -21,3 +21,6 @@ Thumbs.db
 
 # SQLite Database
 *.db
+
+# Uploads dir
+uploads/

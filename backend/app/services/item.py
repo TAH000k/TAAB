@@ -29,7 +29,7 @@ def serialize_item(db: Session, item: Item) -> ItemResponse:
         name=item.name,
         description=item.description,
         category=item.category,
-        image=item.image,
+        image_url=item.image_url,
         available=active_borrow is None,
         current_borrow_id=active_borrow.id if active_borrow else None,
     )
@@ -59,7 +59,7 @@ def serialize_items(db: Session, items: list[Item]) -> list[ItemResponse]:
             name=item.name,
             description=item.description,
             category=item.category,
-            image=item.image,
+            image_url=item.image_url,
             available=item.id not in active_borrows_map,
             current_borrow_id=active_borrows_map.get(item.id),
         )

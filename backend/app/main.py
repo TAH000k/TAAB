@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
+import os
 
 from app.database import Base, engine
 import app.models
@@ -11,6 +14,9 @@ app = FastAPI(
     title="TAAB API",
     version="0.1.0"
 )
+
+os.makedirs("uploads", exist_ok=True)
+app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
 Base.metadata.create_all(bind=engine)
 

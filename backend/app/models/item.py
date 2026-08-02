@@ -30,8 +30,8 @@ class Item(Base):
         nullable=True
     )
 
-    image = Column(
-        String,
+    image_url = Column(
+        String, 
         nullable=True
     )
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -7,7 +7,7 @@ from app.models.user import User
 from app.schemas.item import ItemCreate, ItemResponse
 from app.crud import item as item_crud
 from app.services.item import serialize_item, serialize_items
-
+from app.services.media import save_uploaded_file
 
 router = APIRouter(
     prefix="/items",
@@ -34,6 +34,34 @@ def create_item(
         db,
         item,
     )
+
+    
+@router.post("/{item_id}/upload-image")
+def upload_item_image(
+    item_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    db_item = item_crud.get_item(db, item_id=item_id)
+    if not db_item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found"
+        )
+
+    if db_item.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this item"
+        )
+
+    image_url = save_uploaded_file(file, folder="items")
+    db_item.image_url = image_url
+    db.commit()
+    db.refresh(db_item)
+
+    return {"image_url": image_url}
 
 
 @router.get(

@@ -13,7 +13,7 @@ class ItemResponse(BaseModel):
     name: str
     description: str | None
     category: str | None
-    image: str | None
+    image_url: str | None
 
     available: bool
     current_borrow_id: int | None
