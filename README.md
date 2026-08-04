@@ -16,7 +16,7 @@ The project focuses on simplicity, transparency, and scalability while providing
 
 ### Implemented
 
-### Authentication
+#### Authentication
 - User registration
 - User login
 - JWT authentication
@@ -24,7 +24,7 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Password hashing with bcrypt
 - Current user endpoint
 
-### Item Management
+#### Item Management
 - Create items
 - View owned items
 - Item categories
@@ -35,7 +35,13 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Image upload
 - Item search
 
-### Borrowing (TAAB Workflow)
+#### Groups & Access Control
+- Create and manage custom groups (e.g., Close Friends)
+- Add/remove users to specific groups
+- Group-based item visibility and access control
+- Restrict item search and direct reads based on ownership and group membership
+
+#### Borrowing (TAAB Workflow)
 - Create borrow requests
 - View sent requests
 - View received requests
@@ -49,7 +55,7 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Dispute management and resolution
 - Strict active request constraints (Database & Logic level)
 
-### Testing
+#### Testing
 - Comprehensive automated testing using pytest
 - Complete lifecycle and edge-case coverage
 
@@ -57,19 +63,20 @@ The project focuses on simplicity, transparency, and scalability while providing
 
 ### Planned
 
-### Item Management
+#### Item Management
 - Item filtering
+- Pagination
 
-### Notifications
+#### Notifications
 - Borrow request notifications
 - Return reminders
 
-### Dashboard
+#### Dashboard
 - Statistics
 - Borrow analytics
 - Borrow history
 
-### Extras
+#### Extras
 - QR code support
 - Docker deployment
 - PostgreSQL support
@@ -102,17 +109,8 @@ Current version:
 
 ## API
 
-Swagger UI
-
-```
-[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-```
-
-OpenAPI
-
-```
-[http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
-```
+- **Swagger UI:** http://127.0.0.1:8000/docs
+- **OpenAPI:** http://127.0.0.1:8000/openapi.json
 
 ---
 
@@ -158,6 +156,7 @@ python -m pytest -v
 - [x] Soft delete
 - [x] Image upload
 - [x] Search
+- [x] Groups & Item Visibility
 - [ ] Notifications
 - [ ] Roles & permissions
 - [ ] Statistics dashboard
