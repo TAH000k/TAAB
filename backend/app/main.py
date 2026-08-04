@@ -9,6 +9,7 @@ import app.models
 from app.routers import auth, users
 from app.routers import items
 from app.routers import borrows
+from app.routers import groups
 
 app = FastAPI(
     title="TAAB API",
@@ -24,7 +25,7 @@ app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(items.router)
 app.include_router(borrows.router)
-
+app.include_router(groups.router)
 
 @app.get("/")
 def root():

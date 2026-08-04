@@ -119,6 +119,20 @@ def get_my_items(
     )
 
 
+@router.get("/user/{target_user_id}", response_model=List[ItemResponse])
+def get_user_visible_items(
+    target_user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    items = item_crud.get_visible_items_by_user(
+        db,
+        target_user_id=target_user_id,
+        observer_id=current_user.id
+    )
+    return [serialize_item(db, item) for item in items]
+
+
 @router.delete("/{item_id}")
 def delete_item(
     item_id: int,
