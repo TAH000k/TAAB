@@ -117,7 +117,7 @@ Current version:
 ## Getting Started
 
 ```bash
-git clone [https://github.com/TAH000k/TAAB.git](https://github.com/TAH000k/TAAB.git)
+git clone https://github.com/TAH000k/TAAB.git
 
 cd backend
 
