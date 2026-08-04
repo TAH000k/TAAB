@@ -75,3 +75,15 @@ def test_group_visibility_flow(client):
     stranger_check = client.get(f"/items/user/{owner_id}", headers=stranger_headers)
     assert stranger_check.status_code == 200, f"Stranger check failed: {stranger_check.json()}"
     assert len(stranger_check.json()) == 0
+    
+    stranger_get_direct = client.get(f"/items/{item_id}", headers=stranger_headers)
+    assert stranger_get_direct.status_code == 404
+
+    friend_get_direct = client.get(f"/items/{item_id}", headers=friend_headers)
+    assert friend_get_direct.status_code == 200
+
+    stranger_search = client.get("/items/search?q=Secret", headers=stranger_headers)
+    assert len(stranger_search.json()) == 0
+
+    friend_search = client.get("/items/search?q=Secret", headers=friend_headers)
+    assert len(friend_search.json()) == 1

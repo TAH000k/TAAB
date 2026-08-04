@@ -39,11 +39,12 @@ def create_item(
     
 
 @router.get("/search", response_model=List[ItemResponse])
-def search_items_endpoint(
+def search_items(
     q: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    items = item_crud.search_items(db, q=q)
+    items = item_crud.search_visible_items(db, query_str=q, observer_id=current_user.id)
     return [serialize_item(db, item) for item in items]
 
     
@@ -75,29 +76,17 @@ def upload_item_image(
     return {"image_url": image_url}
 
 
-@router.get(
-    "/{item_id}",
-    response_model=ItemResponse,
-)
+@router.get("/{item_id}", response_model=ItemResponse)
 def get_item(
     item_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    item = item_crud.get_item(
-        db=db,
-        item_id=item_id,
-    )
-
-    if item is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Item not found",
-        )
-
-    return serialize_item(
-        db,
-        item,
-    )
+    item = item_crud.get_visible_item_by_id(db, item_id=item_id, observer_id=current_user.id)
+    if not item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    
+    return serialize_item(db, item)
 
 
 @router.get(
@@ -140,18 +129,9 @@ def delete_item(
     current_user: User = Depends(get_current_user)
 ):
     db_item = item_crud.get_item(db, item_id=item_id)
-    if not db_item:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Item not found"
-        )
+    
+    if not db_item or db_item.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    if db_item.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this item"
-        )
-
-    item_crud.delete_item(db, item=db_item)
-
+    item_crud.soft_delete_item(db, db_item=db_item)
     return {"message": "Item deleted successfully"}
