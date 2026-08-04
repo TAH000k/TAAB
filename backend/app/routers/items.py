@@ -9,6 +9,8 @@ from app.crud import item as item_crud
 from app.services.item import serialize_item, serialize_items
 from app.services.media import save_uploaded_file
 
+from typing import List
+
 router = APIRouter(
     prefix="/items",
     tags=["Items"],
@@ -34,6 +36,15 @@ def create_item(
         db,
         item,
     )
+    
+
+@router.get("/search", response_model=List[ItemResponse])
+def search_items_endpoint(
+    q: str,
+    db: Session = Depends(get_db)
+):
+    items = item_crud.search_items(db, q=q)
+    return [serialize_item(db, item) for item in items]
 
     
 @router.post("/{item_id}/upload-image")

@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 from app.models.item import Item
 from app.schemas.item import ItemCreate
@@ -43,6 +44,17 @@ def get_user_items(
         .filter(Item.owner_id == owner_id, Item.is_deleted == False)
         .all()
     )
+
+
+def search_items(db: Session, q: str):
+    search_query = f"%{q}%"
+    return db.query(Item).filter(
+        Item.is_deleted == False,
+        or_(
+            Item.name.ilike(search_query),
+            Item.description.ilike(search_query)
+        )
+    ).all()
 
 
 def delete_item(
