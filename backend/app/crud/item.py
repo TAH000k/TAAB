@@ -7,6 +7,7 @@ from app.models.group import Group, group_items, group_users
 
 from typing import List, Optional
 
+
 def create_item(
     db: Session,
     item_data: ItemCreate,
@@ -90,8 +91,10 @@ def get_visible_items_by_user(db: Session, target_user_id: int, observer_id: int
         group_users.c.user_id == observer_id
     ).distinct().all()
 
+
 def get_item(db: Session, item_id: int) -> Optional[Item]:
     return db.query(Item).filter(Item.id == item_id, Item.is_deleted == False).first()
+
 
 def soft_delete_item(db: Session, db_item: Item) -> Item:
     db_item.is_deleted = True

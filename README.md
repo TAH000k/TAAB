@@ -23,6 +23,7 @@ The project focuses on simplicity, transparency, and scalability while providing
 - OAuth2 password flow
 - Password hashing with bcrypt
 - Current user endpoint
+- Profile picture upload
 
 #### Item Management
 - Create items
@@ -181,4 +182,4 @@ If you'd like to contribute:
 
 ## License
 
-MIT License
+[MIT License](https://github.com/TAH000k/TAAB/blob/main/LICENCE)
