@@ -1,21 +1,32 @@
-from datetime import datetime, timezone
+"""
+User database model and role enumeration module.
+Defines the User ORM model representing registered accounts, user roles,
+and relationship mappings to owned items and borrow records.
+"""
 
-from sqlalchemy import Column, Integer, String, DateTime
+from datetime import datetime, timezone
+from enum import Enum
+
+from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
-from enum import Enum
-from sqlalchemy import Enum as SQLEnum
-
-from sqlalchemy.orm import relationship
-
 
 class UserRole(str, Enum):
+    """
+    Enumeration of system authorization roles.
+    """
     USER = "user"
     ADMIN = "admin"
-    
-    
+
+
 class User(Base):
+    """
+    SQLAlchemy model representing a registered user account.
+    Stores credentials, profile details, access role, and associations
+    with owned items as well as lent and borrowed transactions.
+    """
     __tablename__ = "users"
 
     id = Column(
@@ -61,13 +72,13 @@ class User(Base):
         DateTime,
         default=lambda: datetime.now(timezone.utc)
     )
-    
-    
+
+    # Relationships
     items = relationship(
         "Item",
         back_populates="owner"
     )
-    
+
     lent_items = relationship(
         "Borrow",
         foreign_keys="Borrow.owner_id",
@@ -79,4 +90,3 @@ class User(Base):
         foreign_keys="Borrow.borrower_id",
         back_populates="borrower"
     )
-    

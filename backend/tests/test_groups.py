@@ -1,4 +1,20 @@
+"""
+Integration tests for group-based item visibility permissions.
+Verifies that items shared within a group are visible to group members
+and hidden from unauthorized users across endpoints (direct lookup, user listings, search).
+"""
+
+import pytest
+
+
 def test_group_visibility_flow(client):
+    """
+    Tests end-to-end visibility permissions using groups:
+    - Registers item owner, group friend, and external stranger.
+    - Owner creates a private item and assigns it to a group containing the friend.
+    - Verifies owner and friend can access, list, and search the item.
+    - Verifies stranger cannot see, access, or find the item via search.
+    """
     reg_owner = client.post(
         "/users/",
         json={"username": "owner", "password": "password123", "display_name": "Owner User"}
@@ -75,7 +91,7 @@ def test_group_visibility_flow(client):
     stranger_check = client.get(f"/items/user/{owner_id}", headers=stranger_headers)
     assert stranger_check.status_code == 200, f"Stranger check failed: {stranger_check.json()}"
     assert len(stranger_check.json()) == 0
-    
+
     stranger_get_direct = client.get(f"/items/{item_id}", headers=stranger_headers)
     assert stranger_get_direct.status_code == 404
 

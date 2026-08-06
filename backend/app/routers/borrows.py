@@ -1,3 +1,9 @@
+"""
+Borrow API router module.
+Provides endpoints for creating, retrieving, updating state, 
+handling handovers, returns, disputes, and resolutions for item borrow requests.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -8,6 +14,7 @@ from app.services import borrow as borrow_service
 from app.auth import get_current_user
 from app.models.user import User
 
+# Router configuration for borrow endpoints
 router = APIRouter(prefix="/borrows", tags=["Borrows"])
 
 
@@ -17,6 +24,20 @@ def create_borrow_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Creates a new borrow request for a specific item.
+
+    Args:
+        borrow (BorrowCreate): Request payload containing item_id and optional due_date.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user requesting the item.
+
+    Returns:
+        BorrowResponse: The created borrow request record.
+
+    Raises:
+        HTTPException: 400 BAD REQUEST if the borrow request cannot be created.
+    """
     result = borrow_crud.create_borrow_request(
         db=db,
         item_id=borrow.item_id,
@@ -36,6 +57,16 @@ def get_sent_requests(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Retrieves all borrow requests initiated by the current user.
+
+    Args:
+        db (Session): Injected database session.
+        current_user (User): Authenticated borrower user.
+
+    Returns:
+        list[BorrowResponse]: List of sent borrow requests.
+    """
     return borrow_crud.get_sent_requests(db=db, borrower_id=current_user.id)
 
 
@@ -44,6 +75,16 @@ def get_received_requests(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Retrieves all borrow requests received for items owned by the current user.
+
+    Args:
+        db (Session): Injected database session.
+        current_user (User): Authenticated owner user.
+
+    Returns:
+        list[BorrowResponse]: List of received borrow requests.
+    """
     return borrow_crud.get_received_requests(db=db, owner_id=current_user.id)
 
 
@@ -53,6 +94,20 @@ def accept_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Accepts a pending borrow request (Item owner action).
+
+    Args:
+        borrow_id (int): ID of the borrow request.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        BorrowResponse: Updated borrow request.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the request does not exist.
+    """
     borrow = borrow_crud.get_borrow_by_id(db=db, borrow_id=borrow_id)
     if not borrow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Borrow request not found")
@@ -65,6 +120,20 @@ def reject_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Rejects a pending borrow request (Item owner action).
+
+    Args:
+        borrow_id (int): ID of the borrow request.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        BorrowResponse: Updated borrow request.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the request does not exist.
+    """
     borrow = borrow_crud.get_borrow_by_id(db=db, borrow_id=borrow_id)
     if not borrow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Borrow request not found")
@@ -77,6 +146,20 @@ def cancel_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Cancels a borrow request before handover completion (Owner or Borrower action).
+
+    Args:
+        borrow_id (int): ID of the borrow request.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        BorrowResponse: Updated borrow request.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the request does not exist.
+    """
     borrow = borrow_crud.get_borrow_by_id(db=db, borrow_id=borrow_id)
     if not borrow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Borrow request not found")
@@ -89,6 +172,20 @@ def confirm_handover(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Confirms physical item handover (Two-step process for owner and borrower).
+
+    Args:
+        borrow_id (int): ID of the borrow request.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        BorrowResponse: Updated borrow request.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the request does not exist.
+    """
     borrow = borrow_crud.get_borrow_by_id(db=db, borrow_id=borrow_id)
     if not borrow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Borrow request not found")
@@ -101,6 +198,20 @@ def confirm_return(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Confirms physical item return (Two-step process for borrower and owner).
+
+    Args:
+        borrow_id (int): ID of the borrow request.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        BorrowResponse: Updated borrow request.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the request does not exist.
+    """
     borrow = borrow_crud.get_borrow_by_id(db=db, borrow_id=borrow_id)
     if not borrow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Borrow request not found")
@@ -113,6 +224,20 @@ def raise_dispute(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Raises a dispute on an active or pending borrow process.
+
+    Args:
+        borrow_id (int): ID of the borrow request.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        BorrowResponse: Updated borrow request with DISPUTED status.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the request does not exist.
+    """
     borrow = borrow_crud.get_borrow_by_id(db=db, borrow_id=borrow_id)
     if not borrow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Borrow request not found")
@@ -126,6 +251,21 @@ def resolve_dispute(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Resolves an open dispute on a borrow request (Item owner action).
+
+    Args:
+        borrow_id (int): ID of the borrow request.
+        payload (BorrowResolveDispute): Resolution target status payload.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        BorrowResponse: Updated borrow request with resolved status.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the request does not exist.
+    """
     borrow = borrow_crud.get_borrow_by_id(db=db, borrow_id=borrow_id)
     if not borrow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Borrow request not found")

@@ -1,3 +1,10 @@
+"""
+Item API router module.
+Provides endpoints for creating, retrieving, searching, updating media,
+and deleting items with visibility and authorization checks.
+"""
+
+from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -9,8 +16,7 @@ from app.crud import item as item_crud
 from app.services.item import serialize_item, serialize_items
 from app.services.media import save_uploaded_file
 
-from typing import List
-
+# Router configuration for item endpoints
 router = APIRouter(
     prefix="/items",
     tags=["Items"],
@@ -26,6 +32,17 @@ def create_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Creates a new item listing for the authenticated user.
+
+    Args:
+        item_data (ItemCreate): Payload containing item details.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user who owns the new item.
+
+    Returns:
+        ItemResponse: Serialized item details including availability status.
+    """
     item = item_crud.create_item(
         db=db,
         item_data=item_data,
@@ -36,7 +53,7 @@ def create_item(
         db,
         item,
     )
-    
+
 
 @router.get("/search", response_model=List[ItemResponse])
 def search_items(
@@ -44,10 +61,21 @@ def search_items(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Searches for visible items matching a query string.
+
+    Args:
+        q (str): Search query keyword.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user performing the search.
+
+    Returns:
+        List[ItemResponse]: List of matching serialized items visible to the user.
+    """
     items = item_crud.search_visible_items(db, query_str=q, observer_id=current_user.id)
     return [serialize_item(db, item) for item in items]
 
-    
+
 @router.post("/{item_id}/upload-image")
 def upload_item_image(
     item_id: int,
@@ -55,6 +83,22 @@ def upload_item_image(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Uploads and attaches an image file to a specific item.
+
+    Args:
+        item_id (int): ID of the item.
+        file (UploadFile): Uploaded image file.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user (must be item owner).
+
+    Returns:
+        dict: Object containing the generated relative image URL.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the item does not exist.
+        HTTPException: 403 FORBIDDEN if the user is not the item owner.
+    """
     db_item = item_crud.get_item(db, item_id=item_id)
     if not db_item:
         raise HTTPException(
@@ -82,10 +126,24 @@ def get_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Retrieves details for a single visible item by its ID.
+
+    Args:
+        item_id (int): ID of the item.
+        db (Session): Injected database session.
+        current_user (User): Authenticated requesting user.
+
+    Returns:
+        ItemResponse: Serialized item details.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the item does not exist or is not visible.
+    """
     item = item_crud.get_visible_item_by_id(db, item_id=item_id, observer_id=current_user.id)
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    
+
     return serialize_item(db, item)
 
 
@@ -97,6 +155,16 @@ def get_my_items(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Retrieves all items owned by the currently authenticated user.
+
+    Args:
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        list[ItemResponse]: Batch-serialized list of the user's items.
+    """
     items = item_crud.get_user_items(
         db=db,
         owner_id=current_user.id,
@@ -114,6 +182,17 @@ def get_user_visible_items(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Retrieves items belonging to a target user that are visible to the requesting user.
+
+    Args:
+        target_user_id (int): ID of the item owner whose items are requested.
+        db (Session): Injected database session.
+        current_user (User): Authenticated requesting user.
+
+    Returns:
+        List[ItemResponse]: List of visible serialized items.
+    """
     items = item_crud.get_visible_items_by_user(
         db,
         target_user_id=target_user_id,
@@ -128,8 +207,22 @@ def delete_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Soft-deletes an item owned by the authenticated user.
+
+    Args:
+        item_id (int): ID of the item to delete.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user (must be item owner).
+
+    Returns:
+        dict: Confirmation message on success.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if item does not exist or user is not owner.
+    """
     db_item = item_crud.get_item(db, item_id=item_id)
-    
+
     if not db_item or db_item.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 

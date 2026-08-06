@@ -1,7 +1,24 @@
+"""
+Integration tests for the borrow lifecycle workflow.
+Tests request creation, state transitions (accept, handover, return, reject, cancel),
+dispute resolution, and edge cases like attempting to borrow self-owned items.
+"""
+
 import pytest
 
 
-def get_auth_header(client, username: str, display_name: str):
+def get_auth_header(client, username: str, display_name: str) -> dict:
+    """
+    Helper function to register a test user, log in, and return HTTP authorization headers.
+
+    Args:
+        client: FastAPI test client.
+        username (str): Username for registration and auth.
+        display_name (str): Display name for registration.
+
+    Returns:
+        dict: Headers dictionary containing the Bearer access token.
+    """
     client.post(
         "/users/",
         json={
@@ -22,6 +39,10 @@ def get_auth_header(client, username: str, display_name: str):
 
 
 def test_complete_borrow_lifecycle(client):
+    """
+    Tests the full end-to-end happy path for a borrow transaction:
+    Request -> Accept -> Owner Handover -> Borrower Handover (BORROWED) -> Borrower Return -> Owner Return (RETURNED).
+    """
     owner_headers = get_auth_header(client, "alice", "Alice")
     borrower_headers = get_auth_header(client, "bob", "Bob")
 
@@ -72,6 +93,9 @@ def test_complete_borrow_lifecycle(client):
 
 
 def test_reject_borrow_request(client):
+    """
+    Tests that an item owner can reject a pending borrow request.
+    """
     owner_headers = get_auth_header(client, "user_owner_1", "Owner One")
     borrower_headers = get_auth_header(client, "user_borrower_1", "Borrower One")
 
@@ -95,6 +119,9 @@ def test_reject_borrow_request(client):
 
 
 def test_cancel_borrow_request(client):
+    """
+    Tests that a borrower can cancel their pending borrow request.
+    """
     owner_headers = get_auth_header(client, "user_owner_2", "Owner Two")
     borrower_headers = get_auth_header(client, "user_borrower_2", "Borrower Two")
 
@@ -118,6 +145,9 @@ def test_cancel_borrow_request(client):
 
 
 def test_dispute_and_resolve_flow(client):
+    """
+    Tests raising a dispute on an active borrow and resolving it to a target status.
+    """
     owner_headers = get_auth_header(client, "user_owner_3", "Owner Three")
     borrower_headers = get_auth_header(client, "user_borrower_3", "Borrower Three")
 
@@ -155,6 +185,9 @@ def test_dispute_and_resolve_flow(client):
 
 
 def test_cannot_borrow_own_item(client):
+    """
+    Tests that a user cannot request to borrow an item that they own.
+    """
     owner_headers = get_auth_header(client, "charlie", "Charlie")
 
     item_res = client.post(

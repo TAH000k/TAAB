@@ -1,7 +1,19 @@
+"""
+Integration tests for item management endpoints.
+Verifies item creation, soft-deletion workflow, and post-deletion accessibility.
+"""
+
 import pytest
 
 
 def test_soft_delete_item_flow(client):
+    """
+    Tests the item creation and soft-deletion lifecycle:
+    - Registers and authenticates a test user.
+    - Creates a new item.
+    - Soft-deletes the item via DELETE endpoint.
+    - Verifies that subsequent GET requests for the item yield a 404 Not Found response.
+    """
     user_data = {
         "username": "item_owner_test",
         "display_name": "Item Owner",
