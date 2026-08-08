@@ -37,17 +37,9 @@ def delete_old_file_if_exists(file_path: str):
 
     full_path = (BASE_DIR / clean_relative_path).resolve()
 
-    print("--- DEBUG DELETE FILE ---")
-    print(f"Current Working Dir (CWD): {os.getcwd()}")
-    print(f"Calculated Absolute Path : {full_path}")
-    print(f"File Exists?             : {full_path.exists()}")
-    print("-------------------------")
-
     if full_path.exists() and full_path.is_file():
         os.remove(full_path)
-        print(f" Successfully deleted: {full_path}")
-    else:
-        print(f" File not found at path: {full_path}")
+
 
 @router.post("/", response_model=UserResponse)
 def create_new_user(

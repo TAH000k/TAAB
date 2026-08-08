@@ -7,6 +7,8 @@ and deleting items with visibility and authorization checks.
 from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
+import os
+from pathlib import Path
 
 from app.database import get_db
 from app.auth import get_current_user
@@ -21,6 +23,19 @@ router = APIRouter(
     prefix="/items",
     tags=["Items"],
 )
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+def delete_old_file_if_exists(file_path: str):
+    if not file_path or file_path == "/static/defaults/ditempic.webp":
+        return
+
+    clean_relative_path = file_path.lstrip("/")
+
+    full_path = (BASE_DIR / clean_relative_path).resolve()
+
+    if full_path.exists() and full_path.is_file():
+        os.remove(full_path)
 
 
 @router.post(
@@ -112,7 +127,53 @@ def upload_item_image(
             detail="Not authorized to update this item"
         )
 
+    delete_old_file_if_exists(db_item.image_url)
+    
     image_url = save_uploaded_file(file, folder="items")
+    db_item.image_url = image_url
+    db.commit()
+    db.refresh(db_item)
+
+    return {"image_url": image_url}
+
+
+@router.post("/{item_id}/reset-image")
+def upload_item_image(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Uploads and attaches an image file to a specific item.
+
+    Args:
+        item_id (int): ID of the item.
+        db (Session): Injected database session.
+        current_user (User): Authenticated user (must be item owner).
+
+    Returns:
+        dict: Object containing the generated relative image URL.
+
+    Raises:
+        HTTPException: 404 NOT FOUND if the item does not exist.
+        HTTPException: 403 FORBIDDEN if the user is not the item owner.
+    """
+    db_item = item_crud.get_item(db, item_id=item_id)
+    if not db_item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found"
+        )
+
+    if db_item.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this item"
+        )
+
+    delete_old_file_if_exists(db_item.image_url)
+    
+    image_url = "/static/defaults/ditempic.webp"
     db_item.image_url = image_url
     db.commit()
     db.refresh(db_item)

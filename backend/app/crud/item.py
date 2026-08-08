@@ -33,7 +33,8 @@ def create_item(
         name=item_data.name,
         description=item_data.description,
         category=item_data.category,
-        owner_id=owner_id
+        owner_id=owner_id,
+        image_url="/static/defaults/ditempic.webp"
     )
 
     db.add(item)
