@@ -37,7 +37,7 @@ def save_uploaded_file(file: UploadFile, folder: str) -> str:
 
     # Generate a unique UUID-based filename to prevent naming collisions
     unique_filename = f"{uuid.uuid4().hex}.{extension}"
-    upload_dir = os.path.join("uploads", folder)
+    upload_dir = os.path.join("static/uploads", folder)
     os.makedirs(upload_dir, exist_ok=True)
 
     file_path = os.path.join(upload_dir, unique_filename)
@@ -46,4 +46,4 @@ def save_uploaded_file(file: UploadFile, folder: str) -> str:
     with open(file_path, "wb") as buffer:
         buffer.write(file.file.read())
 
-    return f"/static/{folder}/{unique_filename}"
+    return f"/static/uploads/{folder}/{unique_filename}"

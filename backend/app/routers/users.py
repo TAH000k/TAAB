@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 import os
 import random
+from pathlib import Path
 
 from app.dependencies import get_db
 from app.schemas.user import UserCreate, UserResponse
@@ -22,6 +23,31 @@ router = APIRouter(
 )
 
 dprofs=["dprof1.jpeg", "dprof2.jpg", "dprof3.jpg"]
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+def delete_old_file_if_exists(file_path: str):
+    if not file_path or (file_path in ["/static/defaults/dprof1.jpeg",
+                                           "/static/defaults/dprof2.jpg",
+                                           "/static/defaults/dprof3.jpg"
+                                           ]):
+        return
+
+    clean_relative_path = file_path.lstrip("/")
+
+    full_path = (BASE_DIR / clean_relative_path).resolve()
+
+    print("--- DEBUG DELETE FILE ---")
+    print(f"Current Working Dir (CWD): {os.getcwd()}")
+    print(f"Calculated Absolute Path : {full_path}")
+    print(f"File Exists?             : {full_path.exists()}")
+    print("-------------------------")
+
+    if full_path.exists() and full_path.is_file():
+        os.remove(full_path)
+        print(f" Successfully deleted: {full_path}")
+    else:
+        print(f" File not found at path: {full_path}")
 
 @router.post("/", response_model=UserResponse)
 def create_new_user(
@@ -70,8 +96,7 @@ def upload_user_profile(
     """
     db_user = get_user_by_username(db, username=current_user.username)
 
-    if db_user.profile_picture != None:
-        os.remove(db_user.profile_picture)
+    delete_old_file_if_exists(db_user.profile_picture)
     
     profile_picture = save_uploaded_file(file, folder="users")
     db_user.profile_picture = profile_picture
@@ -97,10 +122,9 @@ def reset_user_profile(
         dict: Object containing the relative profile picture URL.
     """
     db_user = get_user_by_username(db, username=current_user.username)
-
-    if db_user.profile_picture != None:
-        os.remove(db_user.profile_picture)
-    
+        
+    delete_old_file_if_exists(db_user.profile_picture)
+            
     profile_picture = f"/static/defaults/{random.choice(dprofs)}"
     db_user.profile_picture = profile_picture
     db.commit()
