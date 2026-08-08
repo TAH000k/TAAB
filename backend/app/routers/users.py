@@ -5,6 +5,8 @@ Provides endpoints for user registration and profile picture updates.
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
+import os
+import random
 
 from app.dependencies import get_db
 from app.schemas.user import UserCreate, UserResponse
@@ -19,6 +21,7 @@ router = APIRouter(
     tags=["Users"]
 )
 
+dprofs=["dprof1.jpeg", "dprof2.jpg", "dprof3.jpg"]
 
 @router.post("/", response_model=UserResponse)
 def create_new_user(
@@ -49,7 +52,7 @@ def create_new_user(
 
 
 @router.post("/upload-profile_picture")
-def upload_user_image(
+def upload_user_profile(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -67,7 +70,38 @@ def upload_user_image(
     """
     db_user = get_user_by_username(db, username=current_user.username)
 
+    if db_user.profile_picture != None:
+        os.remove(db_user.profile_picture)
+    
     profile_picture = save_uploaded_file(file, folder="users")
+    db_user.profile_picture = profile_picture
+    db.commit()
+    db.refresh(db_user)
+
+    return {"profile_picture": profile_picture}
+
+
+@router.post("/reset-profile_picture")
+def reset_user_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Resets the profile picture for the currently authenticated user.
+
+    Args:
+        db (Session): Injected database session.
+        current_user (User): Authenticated user.
+
+    Returns:
+        dict: Object containing the relative profile picture URL.
+    """
+    db_user = get_user_by_username(db, username=current_user.username)
+
+    if db_user.profile_picture != None:
+        os.remove(db_user.profile_picture)
+    
+    profile_picture = f"/static/defaults/{random.choice(dprofs)}"
     db_user.profile_picture = profile_picture
     db.commit()
     db.refresh(db_user)

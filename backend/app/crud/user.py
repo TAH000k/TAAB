@@ -7,10 +7,13 @@ and authenticating user credentials.
 from typing import Optional
 from sqlalchemy.orm import Session
 
+import random
+
 from app.models.user import User
 from app.schemas.user import UserCreate
 from app.security import hash_password, verify_password
 
+dprofs=["dprof1.jpeg", "dprof2.jpg", "dprof3.jpg"]
 
 def create_user(db: Session, user_data: UserCreate) -> User:
     """
@@ -27,6 +30,7 @@ def create_user(db: Session, user_data: UserCreate) -> User:
         username=user_data.username,
         display_name=user_data.display_name,
         password_hash=hash_password(user_data.password),
+        profile_picture=f"/static/defaults/{random.choice(dprofs)}"
     )
 
     db.add(user)

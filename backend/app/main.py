@@ -26,7 +26,9 @@ app = FastAPI(
 
 # Ensure local upload directory exists and mount it for static serving
 os.makedirs("uploads", exist_ok=True)
+
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
+app.mount("/static", StaticFiles(directory="defaults"), name="static")
 
 # Create all database tables defined in SQLAlchemy models
 Base.metadata.create_all(bind=engine)
