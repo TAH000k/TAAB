@@ -1,20 +1,22 @@
 """
 User API router module.
-Provides endpoints for user registration and profile picture updates.
+Provides endpoints for user registration and profile updates.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 import os
 import random
 from pathlib import Path
+from typing import Optional
 
 from app.dependencies import get_db
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.crud.user import create_user, get_user_by_username
 from app.models.user import User
 from app.services.media import save_uploaded_file
 from app.auth import get_current_user
+
 
 # Router configuration for user management endpoints
 router = APIRouter(
@@ -22,19 +24,19 @@ router = APIRouter(
     tags=["Users"]
 )
 
-dprofs=["dprof1.jpeg", "dprof2.jpg", "dprof3.jpg"]
+dprofs = ["dprof1.jpeg", "dprof2.jpg", "dprof3.jpg"]
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 def delete_old_file_if_exists(file_path: str):
-    if not file_path or (file_path in ["/static/defaults/dprof1.jpeg",
-                                           "/static/defaults/dprof2.jpg",
-                                           "/static/defaults/dprof3.jpg"
-                                           ]):
+    if not file_path or (file_path in [
+        "/static/defaults/dprof1.jpeg",
+        "/static/defaults/dprof2.jpg",
+        "/static/defaults/dprof3.jpg"
+    ]):
         return
 
     clean_relative_path = file_path.lstrip("/")
-
     full_path = (BASE_DIR / clean_relative_path).resolve()
 
     if full_path.exists() and full_path.is_file():
@@ -48,16 +50,6 @@ def create_new_user(
 ):
     """
     Registers a new user in the system.
-
-    Args:
-        user (UserCreate): User creation payload containing registration details.
-        db (Session): Injected database session.
-
-    Returns:
-        UserResponse: Created user profile details.
-
-    Raises:
-        HTTPException: 400 BAD REQUEST if the username is already taken.
     """
     db_user = get_user_by_username(db, username=user.username)
     if db_user:
@@ -69,57 +61,44 @@ def create_new_user(
     return create_user(db, user)
 
 
-@router.post("/upload-profile_picture")
-def upload_user_profile(
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+@router.patch("/me", response_model=UserResponse)
+def update_user_profile(
+    display_name: Optional[str] = Form(None),
+    bio: Optional[str] = Form(None),
+    profile_picture: Optional[UploadFile] = File(None),
+    reset_profile_picture: bool = Form(False),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """
-    Uploads and sets the profile picture for the currently authenticated user.
-
-    Args:
-        file (UploadFile): Uploaded image file object.
-        db (Session): Injected database session.
-        current_user (User): Authenticated user uploading the picture.
-
-    Returns:
-        dict: Object containing the relative profile picture URL.
+    Update the logged-in user's profile information (display_name, bio)
+    and manage avatar (upload new file or reset to default).
+    Note: Request body must be sent as `multipart/form-data`.
     """
-    db_user = get_user_by_username(db, username=current_user.username)
-
-    delete_old_file_if_exists(db_user.profile_picture)
-    
-    profile_picture = save_uploaded_file(file, folder="users")
-    db_user.profile_picture = profile_picture
-    db.commit()
-    db.refresh(db_user)
-
-    return {"profile_picture": profile_picture}
-
-
-@router.post("/reset-profile_picture")
-def reset_user_profile(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Resets the profile picture for the currently authenticated user.
-
-    Args:
-        db (Session): Injected database session.
-        current_user (User): Authenticated user.
-
-    Returns:
-        dict: Object containing the relative profile picture URL.
-    """
-    db_user = get_user_by_username(db, username=current_user.username)
+    # 1. Update text fields if provided
+    if display_name is not None:
+        current_user.display_name = display_name
         
-    delete_old_file_if_exists(db_user.profile_picture)
-            
-    profile_picture = f"/static/defaults/{random.choice(dprofs)}"
-    db_user.profile_picture = profile_picture
-    db.commit()
-    db.refresh(db_user)
+    if bio is not None:
+        current_user.bio = bio
 
-    return {"profile_picture": profile_picture}
+    # 2. Handle profile picture management
+    if reset_profile_picture:
+        # Case A: Reset to one of the random default profiles
+        delete_old_file_if_exists(current_user.profile_picture)
+        current_user.profile_picture = f"/static/defaults/{random.choice(dprofs)}"
+
+    elif profile_picture and profile_picture.filename:
+        # Case B: Upload a new profile picture using your media service
+        delete_old_file_if_exists(current_user.profile_picture)
+        
+        # Saves the file and returns the relative path
+        new_picture_url = save_uploaded_file(profile_picture, folder="users")
+        current_user.profile_picture = new_picture_url
+
+    # 3. Save updates to database
+    current_user = db.merge(current_user)
+    db.commit()
+    db.refresh(current_user)
+    
+    return current_user

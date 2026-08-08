@@ -5,6 +5,7 @@ structured user response data.
 """
 
 from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional
 
 from app.models.user import UserRole
 
@@ -18,6 +19,11 @@ class UserCreate(BaseModel):
     password: str = Field(min_length=6)
 
 
+class UserUpdate(BaseModel):
+    display_name: Optional[str] = Field(default=None)
+    bio: Optional[str] = Field(default=None, max_length=500)
+    
+    
 class UserResponse(BaseModel):
     """
     Response model representing public user profile details and account role.

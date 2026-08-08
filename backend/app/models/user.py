@@ -58,7 +58,7 @@ class User(Base):
     )
 
     bio = Column(
-        String(300),
+        String(500),
         nullable=True
     )
 

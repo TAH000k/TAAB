@@ -24,6 +24,8 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Password hashing with bcrypt
 - Current user endpoint
 - Profile picture upload
+- Add bio
+- Update profile option
 
 #### Item Management
 - Create items
