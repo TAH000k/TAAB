@@ -9,6 +9,7 @@ import os
 import random
 from pathlib import Path
 from typing import Optional
+from app.crud import notification as notification_crud
 
 from app.dependencies import get_db
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
@@ -49,7 +50,7 @@ def create_new_user(
     db: Session = Depends(get_db)
 ):
     """
-    Registers a new user in the system.
+    Registers a new user in the system and sends a welcome notification.
     """
     db_user = get_user_by_username(db, username=user.username)
     if db_user:
@@ -58,7 +59,23 @@ def create_new_user(
             detail="Username already registered"
         )
         
-    return create_user(db, user)
+    # 1. Create the user (this handles its own db.commit() and db.refresh())
+    new_user = create_user(db, user)
+
+    # 2. Create the welcome notification for the newly created user
+    notification_crud.create_notification(
+        db=db,
+        user_id=new_user.id,
+        title="Welcome to TAAB!",
+        message="Welcome to TAAB! Start sharing and borrowing items with your friends and community.",
+        notification_type="WELCOME",
+        related_id=None
+    )
+    
+    # 3. Commit the notification to the database
+    db.commit()
+
+    return new_user
 
 
 @router.patch("/me", response_model=UserResponse)

@@ -90,3 +90,9 @@ class User(Base):
         foreign_keys="Borrow.borrower_id",
         back_populates="borrower"
     )
+
+    notifications = relationship(
+        "Notification",
+        back_populates="user", 
+        cascade="all, delete-orphan"
+    )

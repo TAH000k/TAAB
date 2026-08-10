@@ -17,6 +17,7 @@ from app.routers import auth, users
 from app.routers import items
 from app.routers import borrows
 from app.routers import groups
+from app.routers import notifications
 
 # Initialize FastAPI instance
 app = FastAPI(
@@ -38,7 +39,7 @@ app.include_router(auth.router)
 app.include_router(items.router)
 app.include_router(borrows.router)
 app.include_router(groups.router)
-
+app.include_router(notifications.router)
 
 @app.get("/")
 def root():
