@@ -160,7 +160,7 @@ python -m pytest -v
 - [x] Image upload
 - [x] Search
 - [x] Groups & Item Visibility
-- [ ] Notifications
+- [x] Notifications
 - [ ] Roles & permissions
 - [ ] Statistics dashboard
 - [ ] Frontend
