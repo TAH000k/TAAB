@@ -21,7 +21,11 @@ def create_notification(
         notification_type=notification_type,
         related_id=related_id
     )
+    
     db.add(notification)
+    db.commit()
+    db.refresh(notification)
+    
     return notification
 
 
