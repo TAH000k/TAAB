@@ -58,6 +58,10 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Dispute management and resolution
 - Strict active request constraints (Database & Logic level)
 
+#### Notifications
+- Welcome notification
+- Borrow request notifications
+
 #### Testing
 - Comprehensive automated testing using pytest
 - Complete lifecycle and edge-case coverage
@@ -71,7 +75,6 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Pagination
 
 #### Notifications
-- Borrow request notifications
 - Return reminders
 
 #### Dashboard
