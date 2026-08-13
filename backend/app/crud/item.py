@@ -74,37 +74,46 @@ def get_visible_item_by_id(db: Session, item_id: int, observer_id: int) -> Optio
 
 def get_user_items(
     db: Session,
-    owner_id: int
+    owner_id: int,
+    skip: int = 0,
+    limit: int = 20
 ) -> List[Item]:
     """
-    Retrieves all non-deleted items owned by a specific user.
-
-    Args:
-        db (Session): Injected database session.
-        owner_id (int): ID of the item owner.
-
-    Returns:
-        List[Item]: List of items owned by the specified user.
+    Retrieves all non-deleted items owned by a specific user with pagination.
     """
     return (
         db.query(Item)
         .filter(Item.owner_id == owner_id, Item.is_deleted == False)
+        .offset(skip)
+        .limit(limit)
         .all()
     )
 
 
-def search_visible_items(db: Session, query_str: str, observer_id: int) -> List[Item]:
+def get_visible_items(
+    db: Session, 
+    observer_id: int,
+    skip: int = 0,
+    limit: int = 20,
+    search_query: Optional[str] = None,
+    category: Optional[str] = None,
+    is_available: Optional[bool] = None
+) -> List[Item]:
     """
-    Searches non-deleted items by matching name or description against a query string,
-    filtered by accessibility (owned by or shared with observer).
+    Retrieves visible items (owned by or shared with observer) with support 
+    for pagination, searching, and filtering.
 
     Args:
         db (Session): Injected database session.
-        query_str (str): Keyword query to match against name or description.
         observer_id (int): ID of the searching user.
+        skip (int): Number of records to skip.
+        limit (int): Maximum number of records to return.
+        search_query (Optional[str]): Keyword query to match against name or description.
+        category (Optional[str]): Filter by item category.
+        is_available (Optional[bool]): Filter by availability status.
 
     Returns:
-        List[Item]: List of unique matching items visible to the observer.
+        List[Item]: List of matching items visible to the observer.
     """
     accessible_item_ids = db.query(group_items.c.item_id).join(
         group_users, group_items.c.group_id == group_users.c.group_id
@@ -112,45 +121,54 @@ def search_visible_items(db: Session, query_str: str, observer_id: int) -> List[
         group_users.c.user_id == observer_id
     ).scalar_subquery()
 
-    search_pattern = f"%{query_str}%"
-
-    return db.query(Item).filter(
+    query = db.query(Item).filter(
         Item.is_deleted == False,
-        or_(
-            Item.name.ilike(search_pattern),
-            Item.description.ilike(search_pattern)
-        ),
         or_(
             Item.owner_id == observer_id,
             Item.id.in_(accessible_item_ids)
         )
-    ).distinct().all()
+    )
+
+    if search_query:
+        search_pattern = f"%{search_query}%"
+        query = query.filter(
+            or_(
+                Item.name.ilike(search_pattern),
+                Item.description.ilike(search_pattern)
+            )
+        )
+
+    if category:
+        query = query.filter(Item.category == category)
+
+    if is_available is not None:
+        query = query.filter(Item.is_available == is_available)
+
+    return query.distinct().offset(skip).limit(limit).all()
 
 
-def get_visible_items_by_user(db: Session, target_user_id: int, observer_id: int) -> List[Item]:
+def get_visible_items_by_user(
+    db: Session, 
+    target_user_id: int, 
+    observer_id: int,
+    skip: int = 0,
+    limit: int = 20
+) -> List[Item]:
     """
-    Retrieves non-deleted items belonging to a target user that are visible to an observer.
-
-    Args:
-        db (Session): Injected database session.
-        target_user_id (int): ID of the user whose items are requested.
-        observer_id (int): ID of the requesting user.
-
-    Returns:
-        List[Item]: List of target user's items that are accessible to the observer.
+    Retrieves non-deleted items belonging to a target user that are visible to an observer (Paginated).
     """
     if target_user_id == observer_id:
         return db.query(Item).filter(
             Item.owner_id == target_user_id,
             Item.is_deleted == False
-        ).all()
+        ).offset(skip).limit(limit).all()
 
     return db.query(Item).join(group_items).join(Group).join(group_users).filter(
         Item.owner_id == target_user_id,
         Item.is_deleted == False,
         Group.owner_id == target_user_id,
         group_users.c.user_id == observer_id
-    ).distinct().all()
+    ).distinct().offset(skip).limit(limit).all()
 
 
 def get_item(db: Session, item_id: int) -> Optional[Item]:

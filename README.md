@@ -37,6 +37,8 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Soft delete
 - Image upload
 - Item search
+- Item filtering
+- Pagination
 
 #### Groups & Access Control
 - Create and manage custom groups (e.g., Close Friends)
@@ -69,10 +71,6 @@ The project focuses on simplicity, transparency, and scalability while providing
 ---
 
 ### Planned
-
-#### Item Management
-- Item filtering
-- Pagination
 
 #### Notifications
 - Return reminders

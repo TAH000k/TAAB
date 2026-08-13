@@ -98,8 +98,8 @@ def test_group_visibility_flow(client):
     friend_get_direct = client.get(f"/items/{item_id}", headers=friend_headers)
     assert friend_get_direct.status_code == 200
 
-    stranger_search = client.get("/items/search?q=Secret", headers=stranger_headers)
+    stranger_search = client.get("/items/?search=Secret", headers=stranger_headers)
     assert len(stranger_search.json()) == 0
 
-    friend_search = client.get("/items/search?q=Secret", headers=friend_headers)
+    friend_search = client.get("/items/?search=Secret", headers=friend_headers)
     assert len(friend_search.json()) == 1
