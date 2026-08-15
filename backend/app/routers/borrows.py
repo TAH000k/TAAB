@@ -11,6 +11,7 @@ from app.database import get_db
 from app.schemas.borrow import BorrowCreate, BorrowResponse, BorrowResolveDispute
 from app.crud import borrow as borrow_crud
 from app.crud import notification as notification_crud
+from app.crud import item as item_crud
 from app.crud.user import get_user_by_id
 from app.crud.item import get_item
 from app.services import borrow as borrow_service
@@ -66,37 +67,39 @@ def create_borrow_request(
 ):
     """
     Creates a new borrow request for a specific item.
-
-    Args:
-        borrow (BorrowCreate): Request payload containing item_id and optional due_date.
-        db (Session): Injected database session.
-        current_user (User): Authenticated user requesting the item.
-
-    Returns:
-        BorrowResponse: The created borrow request record.
-
-    Raises:
-        HTTPException: 400 BAD REQUEST if the borrow request cannot be created.
     """
+    item = item_crud.get_visible_item_by_id(db, item_id=borrow.item_id, observer_id=current_user.id)
+    
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found or you don't have access to it"
+        )
+        
+    if item.owner_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot borrow your own item."
+        )
+
     result = borrow_crud.create_borrow_request(
         db=db,
         item_id=borrow.item_id,
         borrower_id=current_user.id,
         due_date=borrow.due_date,
     )
+    
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot create borrow request for this item"
+            detail="Cannot create borrow request for this item. It might be unavailable."
         )
     
-    item = get_item(db=db, item_id=result.item_id)
-    
     notification_crud.create_notification(
-    db=db,
+        db=db,
         user_id=item.owner_id,
         title="New Borrow Request",
-        message=f"{current_user.display_name}({current_user.username}) requested to borrow '{item.name}'({item.id}).",
+        message=f"{current_user.display_name} ({current_user.username}) requested to borrow '{item.name}' ({item.id}).",
         notification_type="BORROW_REQUEST",
         related_id=result.id
     )
