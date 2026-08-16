@@ -57,11 +57,11 @@ def create_item(
 
 @router.get("/", response_model=List[ItemResponse])
 def get_items(
-    skip: int = Query(0, ge=0, description="تعداد آیتم‌هایی که رد می‌شوند"),
-    limit: int = Query(20, ge=1, le=100, description="حداکثر تعداد آیتم‌های بازگشتی"),
-    category: Optional[str] = Query(None, description="فیلتر دسته‌بندی"),
-    is_available: Optional[bool] = Query(None, description="فیلتر موجودی"),
-    search: Optional[str] = Query(None, description="جستجو در نام یا توضیحات"),
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(20, ge=1, le=100, description="Maximum number of items to return"),
+    category: Optional[str] = Query(None, description="Category filter"),
+    is_available: Optional[bool] = Query(None, description="Availability filter"),
+    search: Optional[str] = Query(None, description="Search in name or description"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
