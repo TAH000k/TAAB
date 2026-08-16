@@ -1,4 +1,5 @@
 # TAAB
+[خواندن مستندات به زبان فارسی (Persian/Farsi)](https://github.com/TAH000k/TAAB/blob/main/README.fa.md)
 
 An open-source platform for managing shared items and borrowing.
 
