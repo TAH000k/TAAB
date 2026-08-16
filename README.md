@@ -18,14 +18,10 @@ The project focuses on simplicity, transparency, and scalability while providing
 ### Implemented
 
 #### Authentication
-- User registration
-- User login
+- User registration & login
 - JWT authentication
 - OAuth2 password flow
 - Password hashing with bcrypt
-- Current user endpoint
-- Profile picture upload
-- Add bio
 - Update profile option
 
 #### Item Management
@@ -34,7 +30,6 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Item categories
 - Availability status
 - Current borrow status
-- Optimized query serialization (N+1 query prevention)
 - Soft delete
 - Image upload
 - Item search
@@ -45,7 +40,6 @@ The project focuses on simplicity, transparency, and scalability while providing
 - Create and manage custom groups (e.g., Close Friends)
 - Add/remove users to specific groups
 - Group-based item visibility and access control
-- Restrict item search and direct reads based on ownership and group membership
 
 #### Borrowing (TAAB Workflow)
 - Create borrow requests
@@ -53,13 +47,11 @@ The project focuses on simplicity, transparency, and scalability while providing
 - View received requests
 - Accept borrow requests
 - Reject borrow requests
-- Automatic rejection of competing pending requests
 - Borrow ownership validation
 - Two-way handover confirmation
 - Two-way return confirmation
 - Cancel pending/accepted requests
 - Dispute management and resolution
-- Strict active request constraints (Database & Logic level)
 
 #### Notifications
 - Welcome notification
