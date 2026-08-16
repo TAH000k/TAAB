@@ -8,44 +8,50 @@ import pytest
 
 
 def get_auth_header(client, username: str, display_name: str) -> dict:
-    """
-    Helper function to register a test user, log in, and return HTTP authorization headers.
-
-    Args:
-        client: FastAPI test client.
-        username (str): Username for registration and auth.
-        display_name (str): Display name for registration.
-
-    Returns:
-        dict: Headers dictionary containing the Bearer access token.
-    """
     client.post(
         "/users/",
-        json={
-            "username": username,
-            "display_name": display_name,
-            "password": "password123",
-        },
+        json={"username": username, "display_name": display_name, "password": "password123"},
     )
-    response = client.post(
-        "/auth/login",
-        data={
-            "username": username,
-            "password": "password123",
-        },
-    )
+    response = client.post("/auth/login", data={"username": username, "password": "password123"})
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_complete_borrow_lifecycle(client):
-    """
-    Tests the full end-to-end happy path for a borrow transaction:
-    Request -> Accept -> Owner Handover -> Borrower Handover (BORROWED) -> Borrower Return -> Owner Return (RETURNED).
-    """
-    owner_headers = get_auth_header(client, "alice", "Alice")
-    borrower_headers = get_auth_header(client, "bob", "Bob")
+def setup_sharing_users(client, owner_username, owner_name, borrower_username, borrower_name):
+    # 1. Register users
+    owner_res = client.post("/users/", json={"username": owner_username, "display_name": owner_name, "password": "password123"})
+    assert owner_res.status_code in [200, 201], f"Owner creation failed: {owner_res.text}"
+    owner_id = owner_res.json()["id"]
 
+    borrower_res = client.post("/users/", json={"username": borrower_username, "display_name": borrower_name, "password": "password123"})
+    assert borrower_res.status_code in [200, 201], f"Borrower creation failed: {borrower_res.text}"
+    borrower_id = borrower_res.json()["id"]
+
+    # 2. Login users
+    owner_login = client.post("/auth/login", data={"username": owner_username, "password": "password123"})
+    owner_headers = {"Authorization": f"Bearer {owner_login.json()['access_token']}"}
+
+    borrower_login = client.post("/auth/login", data={"username": borrower_username, "password": "password123"})
+    borrower_headers = {"Authorization": f"Bearer {borrower_login.json()['access_token']}"}
+
+    # 3. Create group
+    group_res = client.post("/groups", json={"name": f"Test Group {owner_username}"}, headers=owner_headers)
+    assert group_res.status_code in [200, 201], f"Group creation failed: {group_res.text}"
+    group_id = group_res.json()["id"]
+
+    # 4. Add borrower to group (Updated endpoint to /users)
+    member_res = client.post(f"/groups/{group_id}/users", json={"user_id": borrower_id}, headers=owner_headers)
+    assert member_res.status_code in [200, 201], f"Adding user to group failed: {member_res.text}"
+
+    return owner_headers, borrower_headers, group_id
+
+
+def test_complete_borrow_lifecycle(client):
+    owner_headers, borrower_headers, group_id = setup_sharing_users(
+        client, "alice", "Alice", "bob", "Bob"
+    )
+
+    # Create item
     item_response = client.post(
         "/items/",
         json={
@@ -55,15 +61,19 @@ def test_complete_borrow_lifecycle(client):
         },
         headers=owner_headers,
     )
-    assert item_response.status_code == 200
+    assert item_response.status_code in [200, 201], f"Item creation failed: {item_response.text}"
     item_id = item_response.json()["id"]
+
+    # Assign item to group
+    assign_res = client.post(f"/groups/{group_id}/items", json={"item_id": item_id}, headers=owner_headers)
+    assert assign_res.status_code in [200, 201], f"Assigning item to group failed: {assign_res.text}"
 
     request_response = client.post(
         "/borrows/",
         json={"item_id": item_id},
         headers=borrower_headers,
     )
-    assert request_response.status_code == 201
+    assert request_response.status_code == 201, f"Borrow request failed (IDOR block?): {request_response.text}"
     borrow_id = request_response.json()["id"]
 
     # Accept request
@@ -93,18 +103,13 @@ def test_complete_borrow_lifecycle(client):
 
 
 def test_reject_borrow_request(client):
-    """
-    Tests that an item owner can reject a pending borrow request.
-    """
-    owner_headers = get_auth_header(client, "user_owner_1", "Owner One")
-    borrower_headers = get_auth_header(client, "user_borrower_1", "Borrower One")
-
-    item_res = client.post(
-        "/items/",
-        json={"name": "Camera"},
-        headers=owner_headers,
+    owner_headers, borrower_headers, group_id = setup_sharing_users(
+        client, "user_owner_1", "Owner One", "user_borrower_1", "Borrower One"
     )
+
+    item_res = client.post("/items/", json={"name": "Camera"}, headers=owner_headers)
     item_id = item_res.json()["id"]
+    client.post(f"/groups/{group_id}/items", json={"item_id": item_id}, headers=owner_headers)
 
     borrow_res = client.post(
         "/borrows/",
@@ -119,18 +124,13 @@ def test_reject_borrow_request(client):
 
 
 def test_cancel_borrow_request(client):
-    """
-    Tests that a borrower can cancel their pending borrow request.
-    """
-    owner_headers = get_auth_header(client, "user_owner_2", "Owner Two")
-    borrower_headers = get_auth_header(client, "user_borrower_2", "Borrower Two")
-
-    item_res = client.post(
-        "/items/",
-        json={"name": "Projector"},
-        headers=owner_headers,
+    owner_headers, borrower_headers, group_id = setup_sharing_users(
+        client, "user_owner_2", "Owner Two", "user_borrower_2", "Borrower Two"
     )
+
+    item_res = client.post("/items/", json={"name": "Projector"}, headers=owner_headers)
     item_id = item_res.json()["id"]
+    client.post(f"/groups/{group_id}/items", json={"item_id": item_id}, headers=owner_headers)
 
     borrow_res = client.post(
         "/borrows/",
@@ -145,18 +145,13 @@ def test_cancel_borrow_request(client):
 
 
 def test_dispute_and_resolve_flow(client):
-    """
-    Tests raising a dispute on an active borrow and resolving it to a target status.
-    """
-    owner_headers = get_auth_header(client, "user_owner_3", "Owner Three")
-    borrower_headers = get_auth_header(client, "user_borrower_3", "Borrower Three")
-
-    item_res = client.post(
-        "/items/",
-        json={"name": "Console"},
-        headers=owner_headers,
+    owner_headers, borrower_headers, group_id = setup_sharing_users(
+        client, "user_owner_3", "Owner Three", "user_borrower_3", "Borrower Three"
     )
+
+    item_res = client.post("/items/", json={"name": "Console"}, headers=owner_headers)
     item_id = item_res.json()["id"]
+    client.post(f"/groups/{group_id}/items", json={"item_id": item_id}, headers=owner_headers)
 
     borrow_res = client.post(
         "/borrows/",
@@ -169,12 +164,10 @@ def test_dispute_and_resolve_flow(client):
     client.post(f"/borrows/{borrow_id}/handover", headers=owner_headers)
     client.post(f"/borrows/{borrow_id}/handover", headers=borrower_headers)
 
-    # Raise dispute during active borrowing
     dispute_res = client.post(f"/borrows/{borrow_id}/dispute", headers=borrower_headers)
     assert dispute_res.status_code == 200
     assert dispute_res.json()["status"] == "DISPUTED"
 
-    # Resolve dispute by owner
     resolve_res = client.post(
         f"/borrows/{borrow_id}/resolve-dispute",
         json={"target_status": "RETURNED"},
@@ -185,16 +178,9 @@ def test_dispute_and_resolve_flow(client):
 
 
 def test_cannot_borrow_own_item(client):
-    """
-    Tests that a user cannot request to borrow an item that they own.
-    """
     owner_headers = get_auth_header(client, "charlie", "Charlie")
 
-    item_res = client.post(
-        "/items/",
-        json={"name": "Bicycle"},
-        headers=owner_headers,
-    )
+    item_res = client.post("/items/", json={"name": "Bicycle"}, headers=owner_headers)
     item_id = item_res.json()["id"]
 
     borrow_res = client.post(
